@@ -3,6 +3,7 @@ package cc
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -85,6 +86,10 @@ func ApplyRKE2(cfg *config.CloudConfig, restart, install bool) error {
 		return nil
 	}
 
+	// if _, err := os.Stat("/var/lib/rancher/k3os/config.yaml"); err != nil {
+	// 	return nil
+	// }
+
 	rke2Exists := false
 	rke2LocalExists := false
 	if _, err := os.Stat("/sbin/rke2"); err == nil {
@@ -95,26 +100,10 @@ func ApplyRKE2(cfg *config.CloudConfig, restart, install bool) error {
 	}
 
 	args := cfg.K3OS.RKE2sArgs
-	vars := []string{
-		"INSTALL_RKE2_NAME=service",
-	}
+	vars := []string{}
 
-	if !rke2Exists && !restart {
-		return nil
-	}
-
-	if rke2Exists {
-		vars = append(vars, "INSTALL_RKE2_SKIP_DOWNLOAD=true")
-		vars = append(vars, "INSTALL_RKE2_BIN_DIR=/sbin")
-		vars = append(vars, "INSTALL_RKE2_BIN_DIR_READ_ONLY=true")
-	} else if rke2LocalExists {
-		vars = append(vars, "INSTALL_RKE2_SKIP_DOWNLOAD=true")
-	} else if !install {
-		return nil
-	}
-
-	if !restart {
-		vars = append(vars, "INSTALL_RKE2_SKIP_START=true")
+	if !rke2Exists && !rke2LocalExists {
+		return errors.New("RKE2 binary is missing")
 	}
 
 	if cfg.K3OS.ServerURL == "" {
@@ -131,7 +120,7 @@ func ApplyRKE2(cfg *config.CloudConfig, restart, install bool) error {
 	if strings.HasPrefix(cfg.K3OS.Token, "K10") {
 		vars = append(vars, fmt.Sprintf("RKE2_TOKEN=%s", cfg.K3OS.Token))
 	} else if cfg.K3OS.Token != "" {
-		vars = append(vars, fmt.Sprintf("RKE2_CLUSTER_SECRET=%s", cfg.K3OS.Token))
+		vars = append(vars, fmt.Sprintf("RKE2_TOKEN=%s", cfg.K3OS.Token))
 	}
 
 	var labels []string
