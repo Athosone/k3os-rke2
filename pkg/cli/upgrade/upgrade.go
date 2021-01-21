@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	upgradeK3OS, upgradeK3S             bool
+	upgradeK3OS, upgradeRKE2            bool
 	upgradeKernel, upgradeRootFS        bool
 	doRemount, doSync, doReboot         bool
 	sourceDir, destinationDir, lockFile string
@@ -32,9 +32,9 @@ func Command() cli.Command {
 				Hidden:      true,
 			},
 			cli.BoolFlag{
-				Name:        "k3s",
-				EnvVar:      "K3OS_UPGRADE_K3S",
-				Destination: &upgradeK3S,
+				Name:        "rke2",
+				EnvVar:      "K3OS_UPGRADE_RKE2",
+				Destination: &upgradeRKE2,
 				Hidden:      true,
 			},
 			cli.BoolFlag{
@@ -45,7 +45,7 @@ func Command() cli.Command {
 			},
 			cli.BoolFlag{
 				Name:        "rootfs",
-				Usage:       "upgrade k3os+k3s",
+				Usage:       "upgrade k3os+rke2",
 				EnvVar:      "K3OS_UPGRADE_ROOTFS",
 				Destination: &upgradeRootFS,
 			},
@@ -96,10 +96,10 @@ func Command() cli.Command {
 				os.Exit(1)
 			}
 			if upgradeRootFS {
-				upgradeK3S = true
+				upgradeRKE2 = true
 				upgradeK3OS = true
 			}
-			if !upgradeK3OS && !upgradeK3S && !upgradeKernel {
+			if !upgradeK3OS && !upgradeRKE2 && !upgradeKernel {
 				cli.ShowSubcommandHelp(c)
 				logrus.Error("must specify components to upgrade, e.g. `rootfs`, `kernel`")
 				os.Exit(1)
@@ -140,8 +140,8 @@ func Run(_ *cli.Context) {
 			doRemount = false
 		}
 	}
-	if upgradeK3S {
-		if copied, err := system.CopyComponent(sourceDir, destinationDir, doRemount, "k3s"); err != nil {
+	if upgradeRKE2 {
+		if copied, err := system.CopyComponent(sourceDir, destinationDir, doRemount, "rke2"); err != nil {
 			logrus.Error(err)
 		} else if copied {
 			atLeastOneComponentCopied = true

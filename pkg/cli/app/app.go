@@ -20,7 +20,7 @@ var (
 func New() *cli.App {
 	app := cli.NewApp()
 	app.Name = "k3os"
-	app.Usage = "Booting to k3s so you don't have to"
+	app.Usage = "Booting to rke2 so you don't have to"
 	app.Version = version.Version
 	cli.VersionPrinter = func(c *cli.Context) {
 		fmt.Printf("%s version %s\n", app.Name, app.Version)

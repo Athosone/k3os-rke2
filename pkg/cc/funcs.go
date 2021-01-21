@@ -64,19 +64,19 @@ func ApplySSHKeysWithNet(cfg *config.CloudConfig) error {
 	return ssh.SetAuthorizedKeys(cfg, true)
 }
 
-func ApplyK3SWithRestart(cfg *config.CloudConfig) error {
-	return ApplyK3S(cfg, true, false)
+func ApplyRKE2WithRestart(cfg *config.CloudConfig) error {
+	return ApplyRKE2(cfg, true, false)
 }
 
-func ApplyK3SInstall(cfg *config.CloudConfig) error {
-	return ApplyK3S(cfg, true, true)
+func ApplyRKE2Install(cfg *config.CloudConfig) error {
+	return ApplyRKE2(cfg, true, true)
 }
 
-func ApplyK3SNoRestart(cfg *config.CloudConfig) error {
-	return ApplyK3S(cfg, false, false)
+func ApplyRKE2NoRestart(cfg *config.CloudConfig) error {
+	return ApplyRKE2(cfg, false, false)
 }
 
-func ApplyK3S(cfg *config.CloudConfig, restart, install bool) error {
+func ApplyRKE2(cfg *config.CloudConfig, restart, install bool) error {
 	mode, err := mode.Get()
 	if err != nil {
 		return err
@@ -85,36 +85,36 @@ func ApplyK3S(cfg *config.CloudConfig, restart, install bool) error {
 		return nil
 	}
 
-	k3sExists := false
-	k3sLocalExists := false
-	if _, err := os.Stat("/sbin/k3s"); err == nil {
-		k3sExists = true
+	rke2Exists := false
+	rke2LocalExists := false
+	if _, err := os.Stat("/sbin/rke2"); err == nil {
+		rke2Exists = true
 	}
-	if _, err := os.Stat("/usr/local/bin/k3s"); err == nil {
-		k3sLocalExists = true
+	if _, err := os.Stat("/usr/local/bin/rke2"); err == nil {
+		rke2LocalExists = true
 	}
 
-	args := cfg.K3OS.K3sArgs
+	args := cfg.K3OS.RKE2sArgs
 	vars := []string{
-		"INSTALL_K3S_NAME=service",
+		"INSTALL_RKE2_NAME=service",
 	}
 
-	if !k3sExists && !restart {
+	if !rke2Exists && !restart {
 		return nil
 	}
 
-	if k3sExists {
-		vars = append(vars, "INSTALL_K3S_SKIP_DOWNLOAD=true")
-		vars = append(vars, "INSTALL_K3S_BIN_DIR=/sbin")
-		vars = append(vars, "INSTALL_K3S_BIN_DIR_READ_ONLY=true")
-	} else if k3sLocalExists {
-		vars = append(vars, "INSTALL_K3S_SKIP_DOWNLOAD=true")
+	if rke2Exists {
+		vars = append(vars, "INSTALL_RKE2_SKIP_DOWNLOAD=true")
+		vars = append(vars, "INSTALL_RKE2_BIN_DIR=/sbin")
+		vars = append(vars, "INSTALL_RKE2_BIN_DIR_READ_ONLY=true")
+	} else if rke2LocalExists {
+		vars = append(vars, "INSTALL_RKE2_SKIP_DOWNLOAD=true")
 	} else if !install {
 		return nil
 	}
 
 	if !restart {
-		vars = append(vars, "INSTALL_K3S_SKIP_START=true")
+		vars = append(vars, "INSTALL_RKE2_SKIP_START=true")
 	}
 
 	if cfg.K3OS.ServerURL == "" {
@@ -122,16 +122,16 @@ func ApplyK3S(cfg *config.CloudConfig, restart, install bool) error {
 			args = append(args, "server")
 		}
 	} else {
-		vars = append(vars, fmt.Sprintf("K3S_URL=%s", cfg.K3OS.ServerURL))
+		vars = append(vars, fmt.Sprintf("RKE2_URL=%s", cfg.K3OS.ServerURL))
 		if len(args) == 0 {
 			args = append(args, "agent")
 		}
 	}
 
 	if strings.HasPrefix(cfg.K3OS.Token, "K10") {
-		vars = append(vars, fmt.Sprintf("K3S_TOKEN=%s", cfg.K3OS.Token))
+		vars = append(vars, fmt.Sprintf("RKE2_TOKEN=%s", cfg.K3OS.Token))
 	} else if cfg.K3OS.Token != "" {
-		vars = append(vars, fmt.Sprintf("K3S_CLUSTER_SECRET=%s", cfg.K3OS.Token))
+		vars = append(vars, fmt.Sprintf("RKE2_CLUSTER_SECRET=%s", cfg.K3OS.Token))
 	}
 
 	var labels []string
@@ -152,7 +152,7 @@ func ApplyK3S(cfg *config.CloudConfig, restart, install bool) error {
 		args = append(args, "--kubelet-arg", "register-with-taints="+taint)
 	}
 
-	cmd := exec.Command("/usr/libexec/k3os/k3s-install.sh", args...)
+	cmd := exec.Command("/usr/libexec/k3os/rke2-install.sh", args...)
 	cmd.Env = append(os.Environ(), vars...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout

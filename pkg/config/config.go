@@ -17,7 +17,7 @@ type K3OS struct {
 	ServerURL      string            `json:"serverUrl,omitempty"`
 	Token          string            `json:"token,omitempty"`
 	Labels         map[string]string `json:"labels,omitempty"`
-	K3sArgs        []string          `json:"k3sArgs,omitempty"`
+	RKE2sArgs      []string          `json:"rke2Args,omitempty"`
 	Environment    map[string]string `json:"environment,omitempty"`
 	Taints         []string          `json:"taints,omitempty"`
 	Install        *Install          `json:"install,omitempty"`

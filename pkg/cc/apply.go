@@ -32,13 +32,13 @@ func RunApply(cfg *config.CloudConfig) error {
 		ApplyEnvironment,
 		ApplyRuncmd,
 		ApplyInstall,
-		ApplyK3SInstall,
+		ApplyRKE2Install,
 	)
 }
 
 func InstallApply(cfg *config.CloudConfig) error {
 	return runApplies(cfg,
-		ApplyK3SWithRestart,
+		ApplyRKE2WithRestart,
 	)
 }
 
@@ -52,7 +52,7 @@ func BootApply(cfg *config.CloudConfig) error {
 		ApplyWifi,
 		ApplyPassword,
 		ApplySSHKeys,
-		ApplyK3SNoRestart,
+		ApplyRKE2NoRestart,
 		ApplyWriteFiles,
 		ApplyEnvironment,
 		ApplyBootcmd,
